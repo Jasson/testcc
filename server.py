@@ -27,6 +27,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/health":
             self.send_json(200, {"status": "ok"})
+        elif self.path == "/status":
+            self.send_json(200, {"status": "running", "version": "1.0"})
         else:
             self.send_json(404, {"error": "not found"})
 
