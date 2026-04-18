@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT 话题发布平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        /* Login Section */
+        .login-section {
+            display: none;
+        }
+
+        .login-section.active {
+            display: block;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-msg {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Topics Section */
+        .topics-section {
+            display: none;
+        }
+
+        .topics-section.active {
+            display: block;
+        }
+
+        /* Publish Form */
+        .publish-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .publish-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .publish-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .publish-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .publish-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-msg {
+            color: #2e7d32;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        /* Topics List */
+        .topics-list h3 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .topic-item {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .topic-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #ddd;
+        }
+
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .topic-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .topic-delete-btn {
+            padding: 6px 12px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+
+        .topic-delete-btn:hover {
+            background: #ee5a52;
+            transform: translateY(-1px);
+        }
+
+        .topic-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+
+        .topic-author {
+            display: flex;
+            align-items: center;
+        }
+
+        .topic-author::before {
+            content: "✓ ";
+            color: #667eea;
+            margin-right: 5px;
+        }
+
+        .topic-time {
+            display: flex;
+            align-items: center;
+        }
+
+        .topic-time::before {
+            content: "🕐 ";
+            margin-right: 5px;
+        }
+
+        .topic-content {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .alert.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .topic-header {
+                flex-direction: column;
+            }
+
+            .topic-delete-btn {
+                margin-left: 0;
+                margin-top: 10px;
+                width: 100%;
+            }
+
+            .topic-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .login-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div class="login-section active" id="loginSection">
+            <div class="login-card">
+                <h2>IoT 话题发布平台</h2>
+                <div class="alert error" id="loginError"></div>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" placeholder="输入用户名 (admin)" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" placeholder="输入密码 (password123)" required>
+                    </div>
+                    <button type="submit" class="login-btn">登 录</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Topics Section -->
+        <div class="topics-section" id="topicsSection">
+            <div class="header">
+                <h1>IoT 话题发布平台</h1>
+                <div class="user-info">
+                    <div class="user-name">欢迎, <span id="currentUser">-</span></div>
+                    <button class="logout-btn" onclick="handleLogout()">登出</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="alert error" id="topicsError"></div>
+                <div class="alert success" id="topicsSuccess"></div>
+
+                <!-- Publish Form -->
+                <div class="publish-card">
+                    <h3>📝 发布新话题</h3>
+                    <form id="publishForm" onsubmit="handlePublish(event)">
+                        <div class="form-group">
+                            <label for="topicTitle">话题标题 (1-100 字)</label>
+                            <input type="text" id="topicTitle" placeholder="输入话题标题..." maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="topicContent">话题内容 (1-1000 字)</label>
+                            <textarea id="topicContent" placeholder="输入话题内容..." maxlength="1000" required></textarea>
+                        </div>
+                        <div class="button-group">
+                            <button type="submit" class="publish-btn" id="publishBtn">发 布</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Topics List -->
+                <div class="topics-list">
+                    <h3>📚 话题列表</h3>
+                    <div id="topicsLoading" class="loading">
+                        <div class="spinner"></div>
+                        加载中...
+                    </div>
+                    <div id="topicsList"></div>
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📭</div>
+                        <p>暂无话题，成为第一个发布者吧！</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        function setToken(token) {
+            sessionStorage.setItem('token', token);
+        }
+
+        function getToken() {
+            return sessionStorage.getItem('token');
+        }
+
+        function clearToken() {
+            sessionStorage.removeItem('token');
+        }
+
+        function getCurrentUser() {
+            return sessionStorage.getItem('currentUser');
+        }
+
+        function setCurrentUser(username) {
+            sessionStorage.setItem('currentUser', username);
+        }
+
+        function showAlert(elementId, message, type = 'error') {
+            const alertEl = document.getElementById(elementId);
+            alertEl.textContent = message;
+            alertEl.className = `alert active ${type}`;
+            setTimeout(() => {
+                alertEl.classList.remove('active');
+            }, 5000);
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    setToken(data.token);
+                    setCurrentUser(username);
+                    switchToTopicsView();
+                } else {
+                    showAlert('loginError', data.error || '登录失败');
+                }
+            } catch (error) {
+                showAlert('loginError', '网络错误: ' + error.message);
+            }
+        }
+
+        function handleLogout() {
+            clearToken();
+            clearCurrentUser();
+            switchToLoginView();
+        }
+
+        function clearCurrentUser() {
+            sessionStorage.removeItem('currentUser');
+        }
+
+        async function handlePublish(event) {
+            event.preventDefault();
+            const title = document.getElementById('topicTitle').value.trim();
+            const content = document.getElementById('topicContent').value.trim();
+
+            if (!title || !content) {
+                showAlert('topicsError', '标题和内容不能为空');
+                return;
+            }
+
+            const publishBtn = document.getElementById('publishBtn');
+            publishBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/topics`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({ title, content })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('publishForm').reset();
+                    showAlert('topicsSuccess', '话题发布成功！', 'success');
+                    loadTopics();
+                } else {
+                    showAlert('topicsError', data.error || '发布失败');
+                }
+            } catch (error) {
+                showAlert('topicsError', '网络错误: ' + error.message);
+            } finally {
+                publishBtn.disabled = false;
+            }
+        }
+
+        async function loadTopics() {
+            const topicsList = document.getElementById('topicsList');
+            const emptyState = document.getElementById('emptyState');
+            const loading = document.getElementById('topicsLoading');
+
+            try {
+                const response = await fetch(`${API_BASE}/topics`, {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.topics) {
+                    if (data.topics.length === 0) {
+                        topicsList.innerHTML = '';
+                        emptyState.style.display = 'block';
+                        loading.style.display = 'none';
+                    } else {
+                        emptyState.style.display = 'none';
+                        loading.style.display = 'none';
+                        topicsList.innerHTML = data.topics.map(topic => `
+                            <div class="topic-item">
+                                <div class="topic-header">
+                                    <div class="topic-title">${escapeHtml(topic.title)}</div>
+                                    ${topic.author === getCurrentUser() ? `
+                                        <button class="topic-delete-btn" onclick="deleteTopic('${topic.id}')">删除</button>
+                                    ` : ''}
+                                </div>
+                                <div class="topic-meta">
+                                    <div class="topic-author">${escapeHtml(topic.author)}</div>
+                                    <div class="topic-time">${formatTime(topic.created_at)}</div>
+                                </div>
+                                <div class="topic-content">${escapeHtml(topic.content)}</div>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    showAlert('topicsError', data.error || '加载失败');
+                }
+            } catch (error) {
+                showAlert('topicsError', '网络错误: ' + error.message);
+            }
+        }
+
+        async function deleteTopic(topicId) {
+            if (!confirm('确定要删除这个话题吗？')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/topics/${topicId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('topicsSuccess', '话题已删除', 'success');
+                    loadTopics();
+                } else {
+                    showAlert('topicsError', data.error || '删除失败');
+                }
+            } catch (error) {
+                showAlert('topicsError', '网络错误: ' + error.message);
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
+
+            return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function switchToLoginView() {
+            document.getElementById('loginSection').classList.add('active');
+            document.getElementById('topicsSection').classList.remove('active');
+        }
+
+        function switchToTopicsView() {
+            document.getElementById('loginSection').classList.remove('active');
+            document.getElementById('topicsSection').classList.add('active');
+            document.getElementById('currentUser').textContent = getCurrentUser();
+            loadTopics();
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            const token = getToken();
+            if (token && getCurrentUser()) {
+                switchToTopicsView();
+            } else {
+                switchToLoginView();
+            }
+        });
+    </script>
+</body>
+</html>
