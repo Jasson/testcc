@@ -17,7 +17,8 @@ class Handler(BaseHTTPRequestHandler):
         logger.info("%s - %s", self.address_string(), format % args)
 
     def send_json(self, code: int, data: dict):
-        body = json.dumps(data).encode()
+        response = {"code": code, **data}
+        body = json.dumps(response).encode()
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", len(body))
